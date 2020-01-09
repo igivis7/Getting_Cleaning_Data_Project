@@ -1,47 +1,42 @@
-features <- read.csv('./UCI HAR Dataset/features.txt', header = FALSE, sep = ' ')
-features <- as.character(features[,2])
 
-data.train.x <- read.table('./UCI HAR Dataset/train/X_train.txt')
-data.train.activity <- read.csv('./UCI HAR Dataset/train/y_train.txt', header = FALSE, sep = ' ')
-data.train.subject <- read.csv('./UCI HAR Dataset/train/subject_train.txt',header = FALSE, sep = ' ')
-
-data.train <-  data.frame(data.train.subject, data.train.activity, data.train.x)
-names(data.train) <- c(c('subject', 'activity'), features)
-
-data.test.x <- read.table('./UCI HAR Dataset/test/X_test.txt')
-data.test.activity <- read.csv('./UCI HAR Dataset/test/y_test.txt', header = FALSE, sep = ' ')
-data.test.subject <- read.csv('./UCI HAR Dataset/test/subject_test.txt', header = FALSE, sep = ' ')
-
-data.test <-  data.frame(data.test.subject, data.test.activity, data.test.x)
-names(data.test) <- c(c('subject', 'activity'), features)
-
-data.all <- rbind(data.train, data.test)
+# Assuming the data has been downloaded and extracted, this file will read the data, merge it,
+# extract only relevant subsets, label it and finally provide a tidy-data set to run for further analysis on.
 
 
-mean_std.select <- grep('mean|std', features)
-data.sub <- data.all[,c(1,2,mean_std.select + 2)]
 
-activity.labels <- read.table('./UCI HAR Dataset/activity_labels.txt', header = FALSE)
-activity.labels <- as.character(activity.labels[,2])
-data.sub$activity <- activity.labels[data.sub$activity]
+# Read and Convert Data
+# Desc : Data is read file by file and converted into a single data frame
 
 
-name.new <- names(data.sub)
-name.new <- gsub("[(][)]", "", name.new)
-name.new <- gsub("^t", "TimeDomain_", name.new)
-name.new <- gsub("^f", "FrequencyDomain_", name.new)
-name.new <- gsub("Acc", "Accelerometer", name.new)
-name.new <- gsub("Gyro", "Gyroscope", name.new)
-name.new <- gsub("Mag", "Magnitude", name.new)
-name.new <- gsub("-mean-", "_Mean_", name.new)
-name.new <- gsub("-std-", "_StandardDeviation_", name.new)
-name.new <- gsub("-", "_", name.new)
-names(data.sub) <- name.new
 
-data.tidy <- aggregate(data.sub[,3:81], by = list(activity = data.sub$activity, subject = data.sub$subject),FUN = mean)
-write.table(x = data.tidy, file = "data_tidy.txt", row.names = FALSE)
+# Load training data
+training = read.csv("UCI HAR Dataset/train/X_train.txt", sep = "", header = FALSE)
+training[,562] = read.csv("UCI HAR Dataset/train/Y_train.txt", sep = "", header = FALSE)
+training[,563] = read.csv("UCI HAR Dataset/train/subject_train.txt", sep = "", header = FALSE)
+
+#data.training = data.frame(data.training.subject, data.training.y, data.training.y)
+#names(data.training) = c(c('subject','activity'), data.features)
+
+# Load testing data
+testing = read.csv("UCI HAR Dataset/test/X_test.txt", sep = "", header = FALSE)
+testing[,562] = read.csv("UCI HAR Dataset/test/Y_test.txt", sep = "", header = FALSE)
+testing[,563] = read.csv("UCI HAR Dataset/test/subject_test.txt", sep = "", header = FALSE)
+
+#data.testing = data.frame(data.testing.subject, data.testing.x, data.testing.y)
+#names(data.testing) = c(c('subject','activity'), data.features)
+
+# Load activity labels
+data.activitylabels = read.csv("UCI HAR Dataset/activity_labels.txt", sep = "", header = FALSE)
+
+# Load features
+data.features = read.csv("UCI HAR Dataset/features.txt", sep = "", header = FALSE)
+data.features[,2] = gsub('-mean', 'Mean', data.features[,2])
+data.features[,2] = gsub('-std', 'Std Dev', data.features[,2])
+data.features[,2] = gsub('[-()]','', data.features[,2])
 
 
+# Merges training and testing data into 1 data set named data.all
+data.all = rbind(training, testing)
 
 
 
